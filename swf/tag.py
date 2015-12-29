@@ -2,6 +2,7 @@ from consts import *
 from data import *
 from utils import *
 from stream import *
+from avm import ABCFile
 import datetime
 try:
     import Image
@@ -161,10 +162,15 @@ class SWFTimelineContainer(DefinitionTag):
         self.file_length = self._get_file_length(data, pos)
         tag = None
         while type(tag) != TagEnd:
+            # tag_begin = data.tell()
             tag = self.parse_tag(data)
-            if tag:
-                #print tag.name
-                self.tags.append(tag)
+            # tag_end = data.tell()
+            if not tag:
+                continue
+            # print('TAG {0} @ (0x{1:08x}, 0x{2:08x})'.format(
+            #     tag.name, tag_begin, tag_end
+            # ))
+            self.tags.append(tag)
 
     def parse_tag(self, data):
         pos = data.tell()
@@ -907,7 +913,11 @@ class TagDefineBitsLossless(DefinitionTag):
                 b = ord(temp.read(1))
                 s.write(struct.pack("BBBB", r, g, b, a))
             self.image_buffer = s.getvalue()
-            im = Image.fromstring("RGBA", (self.bitmap_width, self.bitmap_height), self.image_buffer)
+            im = Image.frombytes(
+                "RGBA", 
+                (self.bitmap_width, self.bitmap_height),
+                self.image_buffer
+            )
         else:
             raise Exception("unhandled bitmap format! %s %d" % (BitmapFormat.tostring(self.bitmap_format), self.bitmap_format))
 
@@ -1772,6 +1782,9 @@ class TagDoABC(Tag):
         self.lazyInitializeFlag = ((flags & 0x01) != 0)
         self.abcName = data.readString()
         self.bytes = data.f.read(length - (data.tell() - pos))
+        s = SWFStream(StringIO.StringIO(self.bytes))
+        self.abcFile = ABCFile()
+        self.abcFile.parse(s)
 
 class TagDefineShape4(TagDefineShape3):
     TYPE = 83
