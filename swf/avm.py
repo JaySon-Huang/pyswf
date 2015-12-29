@@ -33,7 +33,7 @@ class ConstantPool(object):
                 continue
             utf8_str = stream.read(size)
             self.strings.append(utf8_str)
-        print('strings({0}):'.format(len(self.strings)), end='');pprint(self.strings)
+        # print('strings({0}):'.format(len(self.strings)), end='');pprint(self.strings)
         pos['end'] = stream.tell()
         print('parse strings', pos['end'] - pos['beg'])
 
@@ -43,7 +43,7 @@ class ConstantPool(object):
             kind = stream.readUI8()
             name = stream.readEncodedU32()
             self.namespaces.append((hex(kind), self.strings[name-1]))
-        print('namespace({0}):'.format(len(self.namespaces)), end='');pprint(self.namespaces)
+        # print('namespace({0}):'.format(len(self.namespaces)), end='');pprint(self.namespaces)
         pos['end'] = stream.tell()
         print('parse namespaces', pos['end'] - pos['beg'])
 
@@ -53,15 +53,13 @@ class ConstantPool(object):
             count = stream.readEncodedU32()
             ns = [stream.readEncodedU32() for i in range(count)]
             self.ns_sets.append(ns)
-        print('ns_set({0}):'.format(len(self.ns_sets)), end='');pprint(self.ns_sets)
+        # print('ns_set({0}):'.format(len(self.ns_sets)), end='');pprint(self.ns_sets)
         pos['end'] = stream.tell()
         print('parse ns_sets', pos['end'] - pos['beg'])
 
         pos['beg'] = stream.tell()
         self._parse_multiname(stream)
-        # print('multinames({0}/{1}):'.format(
-        #     len(self.multinames), multiname_count), end=''
-        # )pprint(self.multinames)
+        # print('multinames({0}/{1}):'.format(len(self.multinames), multiname_count), end='');pprint(self.multinames)
         pos['end'] = stream.tell()
         print('parse multinames', pos['end'] - pos['beg'])
 
@@ -106,15 +104,18 @@ class ConstantPool(object):
                 data['ns_set'] = stream.readEncodedU32()
             elif kind == 0x1d:# TYPENAME
                 # according to
-                # https://github.com/jindrapetrik/jpexs-decompiler/blob/master/libsrc/ffdec_lib/src/com/jpexs/decompiler/flash/abc/types/Multiname.java
+                # https://github.com/jindrapetrik/jpexs-decompiler/ \
+                #   blob/master/libsrc/ffdec_lib/src/ \
+                #   com/jpexs/decompiler/flash/abc/types/Multiname.java
                 data['qname_index'] = stream.readEncodedU32() # Multiname index!!!
                 params_length = stream.readEncodedU32()
                 # multiname indices!
-                data['params'] = [stream.readEncodedU32() for _ in range(params_length)]
+                data['params'] = [
+                    stream.readEncodedU32() 
+                    for _ in range(params_length)
+                ]
             else:
-                raise Exception('Unknown kind: {0:02x}, index: {1}'.format(
-                    kind, i
-                ))
+                raise Exception('Unknown kind: {0:02x}'.format(kind))
             self.multinames.append(
                 (hex(kind), data)
             )
@@ -353,8 +354,10 @@ class TraitFactory(object):
             trait = StTraitMethod(name, kind)
             trait.disp_id = stream.readEncodedU32()
             trait.method = stream.readEncodedU32()
+        else:
+            raise Exception('Unknown trait type: {0:02x}'.format(trait_type))
         # attr
-        if ((kind & 0xf0)>>4) == cls.ATTR_Metadata:
+        if (kind>>4) & cls.ATTR_Metadata:
             metadata_count = stream.readEncodedU32()
             for k in range(metadata_count):
                 trait.metadatas.append(stream.readEncodedU32())
@@ -451,7 +454,7 @@ class ABCFile(object):
         pos['end'] = stream.tell()
         # print('parse method body', pos['end'] - pos['beg'])
 
-        from IPython import embed;embed();
+        # from IPython import embed;embed();
 
     def _parse_methods(self, stream):
         methods = []
