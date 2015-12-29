@@ -9,61 +9,33 @@ class ConstantPool(object):
 
     def __init__(self):
         super(ConstantPool, self).__init__()
-        self._ints = [0,]
-        self._uints = [0,]
-        self._doubles = [0.0,]
-        self._strings = ['*',]
-        self._namespaces = ['*',]
-        self._ns_sets = [None,]
-        self._multinames = [None,]
+        self.ints = [0,]
+        self.uints = [0,]
+        self.doubles = [0.0,]
+        self.strings = ['*',]
+        self.namespaces = ['*',]
+        self.ns_sets = [None,]
+        self.multinames = [None,]
 
-    @property
-    def ints(self):
-        return self._ints
-    
-    @property
-    def uints(self):
-        return self._uints
-    
-    @property
-    def doubles(self):
-        return self._doubles
-    
-    @property
-    def strings(self):
-        return self._strings
-    
-    @property
-    def namespaces(self):
-        return self._namespaces
-    
-    @property
-    def ns_sets(self):
-        return self._ns_sets
-    
-    @property
-    def multinames(self):
-        return self._multinames
-    
     def parse(self, stream):
         pos = {}
         pos['beg'] = stream.tell()
         self._parse_numbers(stream)
         pos['end'] = stream.tell()
-        # print('parse numbers', pos['end'] - pos['beg'])
+        print('parse numbers', pos['end'] - pos['beg'])
 
         pos['beg'] = stream.tell()
         string_count = stream.readEncodedU32()
-        for i in range(string_count-2):
+        for i in range(string_count-1):
             size = stream.readEncodedU32()
-            if i == 0:
-                size += 1
+            if size == 0:
+                self.strings.append('')
+                continue
             utf8_str = stream.read(size)
             self.strings.append(utf8_str)
-        # print('strings({0}):'.format(len(self.strings)), end='')
-        # pprint(self.strings)
+        print('strings({0}):'.format(len(self.strings)), end='');pprint(self.strings)
         pos['end'] = stream.tell()
-        # print('parse strings', pos['end'] - pos['beg'])
+        print('parse strings', pos['end'] - pos['beg'])
 
         pos['beg'] = stream.tell()
         namespace_count = stream.readEncodedU32()
@@ -71,10 +43,9 @@ class ConstantPool(object):
             kind = stream.readUI8()
             name = stream.readEncodedU32()
             self.namespaces.append((hex(kind), self.strings[name-1]))
-        # print('namespace({0}):'.format(len(self.namespaces)), end='')
-        # pprint(self.namespaces)
+        print('namespace({0}):'.format(len(self.namespaces)), end='');pprint(self.namespaces)
         pos['end'] = stream.tell()
-        # print('parse namespaces', pos['end'] - pos['beg'])
+        print('parse namespaces', pos['end'] - pos['beg'])
 
         pos['beg'] = stream.tell()
         ns_set_count = stream.readEncodedU32()
@@ -82,15 +53,17 @@ class ConstantPool(object):
             count = stream.readEncodedU32()
             ns = [stream.readEncodedU32() for i in range(count)]
             self.ns_sets.append(ns)
-        # print('ns_set({0}):'.format(len(self.ns_sets)), end='')
-        # pprint(self.ns_sets)
+        print('ns_set({0}):'.format(len(self.ns_sets)), end='');pprint(self.ns_sets)
         pos['end'] = stream.tell()
-        # print('parse ns_sets', pos['end'] - pos['beg'])
+        print('parse ns_sets', pos['end'] - pos['beg'])
 
         pos['beg'] = stream.tell()
         self._parse_multiname(stream)
+        # print('multinames({0}/{1}):'.format(
+        #     len(self.multinames), multiname_count), end=''
+        # )pprint(self.multinames)
         pos['end'] = stream.tell()
-        # print('parse multinames', pos['end'] - pos['beg'])
+        print('parse multinames', pos['end'] - pos['beg'])
 
     def _parse_numbers(self, stream):
         int_count = stream.readEncodedU32()
@@ -118,36 +91,33 @@ class ConstantPool(object):
         multiname_count = stream.readEncodedU32()
         for i in range(multiname_count-1):
             kind = stream.readUI8()
+            data = {}
             if   kind in (0x07, 0x0D):# QName/QNameA
-                ns = stream.readEncodedU32()
-                name = stream.readEncodedU32()
-                self._multinames.append(
-                    (hex(kind), 
-                     (self.namespaces[ns][1], self.strings[name-1],))
-                )
+                data['ns'] = stream.readEncodedU32()
+                data['name'] = stream.readEncodedU32()
             elif kind in (0x0F, 0x10):# RTQName/RTQNameA
-                name = stream.readEncodedU32()
-                self._multinames.append(
-                    (hex(kind),
-                     (name,))
-                )
+                data['name'] = stream.readEncodedU32()
             elif kind in (0x11, 0x12):# RTQNameL/RTQNameLA
                 pass
             elif kind in (0x09, 0x0E):# Multiname/MultinameA
-                name = stream.readEncodedU32()
-                ns_set = stream.readEncodedU32()
-                self._multinames.append(
-                    (hex(kind),
-                     (name, ns_set,))
-                )
+                data['name'] = stream.readEncodedU32()
+                data['ns_set'] = stream.readEncodedU32()
             elif kind in (0x1B, 0x1C):# MultinameL/MultinameLA
-                ns_set = stream.readEncodedU32()
-                self._multinames.append(
-                    (hex(kind),
-                     (ns_set, ))
-                )
-        # print('multinames({0}):'.format(len(self.multinames)), end='')
-        # pprint(self.multinames)
+                data['ns_set'] = stream.readEncodedU32()
+            elif kind == 0x1d:# TYPENAME
+                # according to
+                # https://github.com/jindrapetrik/jpexs-decompiler/blob/master/libsrc/ffdec_lib/src/com/jpexs/decompiler/flash/abc/types/Multiname.java
+                data['qname_index'] = stream.readEncodedU32() # Multiname index!!!
+                params_length = stream.readEncodedU32()
+                # multiname indices!
+                data['params'] = [stream.readEncodedU32() for _ in range(params_length)]
+            else:
+                raise Exception('Unknown kind: {0:02x}, index: {1}'.format(
+                    kind, i
+                ))
+            self.multinames.append(
+                (hex(kind), data)
+            )
 
 
 class StInstanceInfo(object):
@@ -441,9 +411,9 @@ class ABCFile(object):
     def parse(self, stream):
         self._version['minor'] = stream.readUI16()
         self._version['major'] = stream.readUI16()
-        # print('0x{0:04x}, 0x{1:04x}'.format(
-        #     self._version['minor'], self._version['major']
-        # ))
+        print('0x{0:04x}, 0x{1:04x}'.format(
+            self._version['minor'], self._version['major']
+        ))
         pos = {}
         
         self.const_pool.parse(stream)
@@ -481,7 +451,7 @@ class ABCFile(object):
         pos['end'] = stream.tell()
         # print('parse method body', pos['end'] - pos['beg'])
 
-        # from IPython import embed;embed();
+        from IPython import embed;embed();
 
     def _parse_methods(self, stream):
         methods = []
