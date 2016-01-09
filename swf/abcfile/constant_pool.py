@@ -67,7 +67,7 @@ class StMultiname(object):
                 for _ in range(params_length)
             ]
         else:
-            raise Exception('Unknown kind: {0:02x}'.format(kind))
+            raise Exception('Unknown kind: {0:02x}'.format(obj.kind))
         return obj
 
     def solve_name(self, const_pool):
@@ -133,7 +133,7 @@ multinames ({}):
     len(self.doubles),    pformat(self.doubles),
     len(self._strings),    pformat(self._strings),
     len(self.namespaces), pformat(self.namespaces),
-    len(self.ns_sets),    pformat(self.ns_sets),
+    len(self._ns_sets),    pformat(self._ns_sets),
     len(self.multinames), pformat(self.multinames),
     self=self
 )

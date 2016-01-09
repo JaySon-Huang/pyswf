@@ -3,6 +3,7 @@ from data import *
 from actions import *
 from filters import SWFFilterFactory
 
+
 class SWFStream(object):
     """
     SWF File stream
@@ -30,7 +31,7 @@ class SWFStream(object):
                 b = b | val if val >= 0 else b | ~val << 1
                 vmax = val if vmax < val else vmax
             else:
-                b |= val;
+                b |= val
         bits = 0
         if b > 0:
             bits = len(self.bin(b)) - 2
@@ -84,7 +85,10 @@ class SWFStream(object):
             if self._bits_pending > 0:
                 assert self._partial_byte is not None
                 take = min(self._bits_pending, bits)
-                out, self._partial_byte = transfer_bits(out, self._partial_byte, self._bits_pending, take)
+                out, self._partial_byte = transfer_bits(
+                    out, self._partial_byte,
+                    self._bits_pending, take
+                )
 
                 if take == self._bits_pending:
                     # we took them all
@@ -170,7 +174,7 @@ class SWFStream(object):
 
     def readFLOAT(self):
         """ Read a float """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('f', self.f.read(4))[0]
 
     def readFLOAT16(self):
@@ -356,7 +360,7 @@ class SWFStream(object):
 
     def readRGBA(self):
         """ Read a RGBA color """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         r = self.readUI8()
         g = self.readUI8()
         b = self.readUI8()
@@ -405,7 +409,7 @@ class SWFStream(object):
         return SWFSoundEnvelope(self)
 
     def readBUTTONRECORD(self, version):
-        rc = SWFButtonRecord(data = self, version = version)
+        rc = SWFButtonRecord(data=self, version=version)
         return rc if rc.valid else None
 
     def readBUTTONRECORDs(self, version):
@@ -488,6 +492,7 @@ class SWFStream(object):
     def tell(self):
         """ Tell """
         return self.f.tell()
+
 
 def int32(x):
     """ Return a signed or unsigned int """
