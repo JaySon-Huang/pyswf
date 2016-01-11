@@ -18,27 +18,31 @@ class StMethodInfo(object):
         param_count = stream.readEncodedU32()
         self.return_type = stream.readEncodedU32()
         self.param_types = []
-        for j in range(param_count):
+        for _ in range(param_count):
             self.param_types.append(stream.readEncodedU32())
         self.name = stream.readEncodedU32()
         self.flags = stream.readUI8()
         self.options = []
         self.param_names = []
-        if self.flags & self.NEED_ARGUMENTS:
-            pass
-        if self.flags & self.NEED_ACTIVATION:
-            pass
-        if self.flags & self.NEED_REST:
-            pass
-        if self.flags & self.HAS_OPTIONAL:
-            self.options = self._parse_options(stream)
-        if self.flags & self.SET_EXNS:
-            pass
-        if self.flags & self.HAS_PARAM_NAMES:
-            for j in range(param_count):
+        if self.flags & StMethodInfo.HAS_OPTIONAL:
+            self.options = self.parse_options(stream)
+        if self.flags & StMethodInfo.HAS_PARAM_NAMES:
+            for _ in range(param_count):
                 self.param_names.append(stream.readEncodedU32())
+        ''' NO actions for these flags
+        if self.flags & StMethodInfo.NEED_ARGUMENTS:
+            pass
+        if self.flags & StMethodInfo.NEED_ACTIVATION:
+            pass
+        if self.flags & StMethodInfo.NEED_REST:
+            pass
 
-    def _parse_options(self, stream):
+        if self.flags & StMethodInfo.SET_EXNS:
+            pass
+        '''
+
+    @staticmethod
+    def parse_options(stream):
         options = []
         option_count = stream.readEncodedU32()
         for _ in range(option_count):
@@ -135,32 +139,34 @@ class ABCFile(object):
     def parse(self, stream):
         self._version['minor'] = stream.readUI16()
         self._version['major'] = stream.readUI16()
-        
+
         self.offset['const_pool'] = stream.tell()
         self.const_pool.parse(stream)
 
         self.offset['methods'] = stream.tell()
-        self.methods = self._parse_methods(stream)
+        self.methods = self.parse_methods(stream)
         self.offset['metadatas'] = stream.tell()
-        self.metadatas = self._parse_metadas(stream)
+        self.metadatas = self.parse_metadas(stream)
         # parse instance_info && class_info
         self.offset['instances/classes'] = stream.tell()
         class_count = stream.readEncodedU32()
         self.instances = self._parse_instances(stream, class_count)
-        self.classes = self._parse_classes(stream, class_count)
+        self.classes = self.parse_classes(stream, class_count)
         self.offset['scripts'] = stream.tell()
-        self.scripts = self._parse_scripts(stream)
+        self.scripts = self.parse_scripts(stream)
         self.offset['method_bodies'] = stream.tell()
-        self.method_bodies = self._parse_method_bodies(stream)
+        self.method_bodies = self.parse_method_bodies(stream)
 
-    def _parse_methods(self, stream):
+    @staticmethod
+    def parse_methods(stream):
         methods = []
         method_count = stream.readEncodedU32()
         for i in range(method_count):
             methods.append(StMethodInfo(stream))
         return methods
 
-    def _parse_metadas(self, stream):
+    @staticmethod
+    def parse_metadas(stream):
         metadatas = []
         metadata_count = stream.readEncodedU32()
         for _ in range(metadata_count):
@@ -180,26 +186,29 @@ class ABCFile(object):
             })
         return metadatas
 
-    def _parse_instances(self, stream, class_count):
+    @staticmethod
+    def _parse_instances(stream, class_count):
         instances = []
         for _ in range(class_count):
             instances.append(StInstanceInfo(stream))
         return instances
 
-    def _parse_classes(self, stream, class_count):
+    @staticmethod
+    def parse_classes(stream, class_count):
         classes = []
         for _ in range(class_count):
             classes.append(StClassInfo(stream))
         return classes
 
-    def _parse_scripts(self, stream):
+    @staticmethod
+    def parse_scripts(stream):
         scripts = []
         script_count = stream.readEncodedU32()
         for _ in range(script_count):
             init = stream.readEncodedU32()
             trait_count = stream.readEncodedU32()
             traits = []
-            for j in range(trait_count):
+            for __ in range(trait_count):
                 trait = TraitFactory.create(stream)
                 traits.append(trait)
             scripts.append({
@@ -208,7 +217,8 @@ class ABCFile(object):
             })
         return scripts
 
-    def _parse_method_bodies(self, stream):
+    @staticmethod
+    def parse_method_bodies(stream):
         bodies = []
         method_body_count = stream.readEncodedU32()
         for _ in range(method_body_count):
@@ -220,13 +230,13 @@ class ABCFile(object):
             code_length = stream.readEncodedU32()
             code = stream.read(code_length)
             exception_count = stream.readEncodedU32()
-            for j in range(exception_count):
+            for __ in range(exception_count):
                 from_ = stream.readEncodedU32()
                 to = stream.readEncodedU32()
                 target = stream.readEncodedU32()
                 exc_type = stream.readEncodedU32()
                 var_name = stream.readEncodedU32()
             trait_count = stream.readEncodedU32()
-            for j in range(trait_count):
+            for __ in range(trait_count):
                 trait = TraitFactory.create(stream)
         return bodies

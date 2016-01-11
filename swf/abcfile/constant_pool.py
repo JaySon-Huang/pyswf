@@ -5,6 +5,7 @@ import cStringIO as StringIO
 from pprint import pformat
 
 
+# noinspection PyUnresolvedReferences
 class StMultiname(object):
     QName       = 0x07
     QNameA      = 0x0D
@@ -27,17 +28,17 @@ class StMultiname(object):
 
     def __repr__(self):
         s = '<StMultiname'
-        if   self.kind in (self.QName, self.QNameA):
+        if   self.kind in (StMultiname.QName, StMultiname.QNameA):
             s += '(QName/QNameA) name:{self.name} namespace:{self.ns}>'
-        elif self.kind in (self.RTQName, self.RTQNameA):
+        elif self.kind in (StMultiname.RTQName, StMultiname.RTQNameA):
             s += '(RTQName/RTQNameA) name:{self.name}>'
-        elif self.kind in (self.RTQNameL, self.RTQNameLA):
+        elif self.kind in (StMultiname.RTQNameL, StMultiname.RTQNameLA):
             s += '(RTQNameL/RTQNameLA) >'
-        elif self.kind in (self.Multiname, self.MultinameA):
+        elif self.kind in (StMultiname.Multiname, StMultiname.MultinameA):
             s += '(Multiname/MultinameA) name:{self.name} ns_set:{self.ns_set}>'
-        elif self.kind in (self.MultinameL, self.MultinameLA):
+        elif self.kind in (StMultiname.MultinameL, StMultiname.MultinameLA):
             s += '(MultinameL/MultinameLA) ns_set:{self.ns_set}>'
-        elif self.kind == self.TYPENAME:
+        elif self.kind == StMultiname.TYPENAME:
             s += '(TYPENAME) qname:{self.qname_index} params:{self.params}>'
         return s.format(self=self)
 
@@ -93,7 +94,7 @@ class StMultiname(object):
             }
         elif self.kind == self.TYPENAME:
             return {
-                'qname': const_pool.get_solved_multiname(self.qname),
+                'qname': const_pool.get_solved_multiname(self.qname_index),
                 'params': [const_pool.get_solved_multiname(i) for i in self.params]
             }
 
@@ -103,13 +104,13 @@ class ConstantPool(object):
     def __init__(self):
         super(ConstantPool, self).__init__()
         self.offset = {}
-        self.integers = [0,]
-        self.uintegers = [0,]
-        self.doubles = [0.0,]
-        self._strings = ['*',]
-        self._namespaces = [(None, 0),]
-        self._ns_sets = [[],]
-        self.multinames = [None,]
+        self.integers = [0, ]
+        self.uintegers = [0, ]
+        self.doubles = [0.0, ]
+        self._strings = ['*', ]
+        self._namespaces = [(None, 0), ]
+        self._ns_sets = [[], ]
+        self.multinames = [None, ]
 
     def details(self):
         return '''<ConstantPool>
@@ -131,9 +132,9 @@ multinames ({}):
     len(self.integers),   pformat(self.integers),
     len(self.uintegers),  pformat(self.uintegers),
     len(self.doubles),    pformat(self.doubles),
-    len(self._strings),    pformat(self._strings),
+    len(self._strings),   pformat(self._strings),
     len(self.namespaces), pformat(self.namespaces),
-    len(self._ns_sets),    pformat(self._ns_sets),
+    len(self._ns_sets),   pformat(self._ns_sets),
     len(self.multinames), pformat(self.multinames),
     self=self
 )
@@ -176,7 +177,7 @@ multinames ({}):
                 for i in range(len(self.multinames))
             ]
         if index == 0:
-            return {'name':'*',}
+            return {'name': '*', }
         return self.multinames[index].solve_name(self)
 
     def parse(self, stream):
