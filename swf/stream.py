@@ -1,9 +1,10 @@
-import struct, math
+import struct
 from data import *
 from actions import *
 from filters import SWFFilterFactory
 
 
+# noinspection PyPep8Naming
 class SWFStream(object):
     """
     SWF File stream
@@ -19,7 +20,7 @@ class SWFStream(object):
 
     def bin(self, s):
         """ Return a value as a binary string """
-        return str(s) if s<=1 else bin(s>>1) + str(s&1)
+        return str(s) if s <= 1 else bin(s >> 1) + str(s & 1)
 
     def calc_max_bits(self, signed, values):
         """ Calculates the maximim needed bits to represent a value """
@@ -76,8 +77,8 @@ class SWFStream(object):
                 # taking all
                 return (x << t) | y, 0
 
-            mask = masks[t]           # (1 << t) - 1
-            remainmask = masks[n - t] # (1 << n - t) - 1
+            mask = masks[t]  # (1 << t) - 1
+            remainmask = masks[n - t]  # (1 << n - t) - 1
             taken = ((y >> n - t) & mask)
             return (x << t) | taken, y & remainmask
 
@@ -120,43 +121,43 @@ class SWFStream(object):
 
     def readSI8(self):
         """ Read a signed byte """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('b', self.f.read(1))[0]
 
     def readUI8(self):
         """ Read a unsigned byte """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('B', self.f.read(1))[0]
 
     def readSI16(self):
         """ Read a signed short """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('h', self.f.read(2))[0]
 
     def readUI16(self):
         """ Read a unsigned short """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('H', self.f.read(2))[0]
 
     def readSI32(self):
         """ Read a signed int """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('<i', self.f.read(4))[0]
 
     def readUI32(self):
         """ Read a unsigned int """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('<I', self.f.read(4))[0]
 
     def readUI64(self):
         """ Read a uint64_t """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         return struct.unpack('<Q', self.f.read(8))[0]
 
     def readEncodedU32(self):
         """ Read a encoded unsigned int """
-        self.reset_bits_pending();
-        result = self.readUI8();
+        self.reset_bits_pending()
+        result = self.readUI8()
         if result & 0x80 != 0:
             result = (result & 0x7f) | (self.readUI8() << 7)
             if result & 0x4000 != 0:
@@ -266,7 +267,7 @@ class SWFStream(object):
         """ Read a SWFShapeRecordStraightEdge """
         return SWFShapeRecordStraightEdge(self, num_bits)
 
-    def readSTYLECHANGERECORD(self, states, fill_bits, line_bits, level = 1):
+    def readSTYLECHANGERECORD(self, states, fill_bits, line_bits, level=1):
         """ Read a SWFShapeRecordStyleChange """
         return SWFShapeRecordStyleChange(self, states, fill_bits, line_bits, level)
 
@@ -316,7 +317,7 @@ class SWFStream(object):
         actionCode = self.readUI8()
         if actionCode != 0:
             actionLength = self.readUI16() if actionCode >= 0x80 else 0
-            #print "0x%x"%actionCode, actionLength
+            # print "0x%x"%actionCode, actionLength
             action = SWFActionFactory.create(actionCode, actionLength)
             action.parse(self)
         return action
@@ -352,7 +353,7 @@ class SWFStream(object):
 
     def readRGB(self):
         """ Read a RGB color """
-        self.reset_bits_pending();
+        self.reset_bits_pending()
         r = self.readUI8()
         g = self.readUI8()
         b = self.readUI8()
@@ -470,7 +471,7 @@ class SWFStream(object):
         if tag_length == 0x3f:
             # The SWF10 spec sez that this is a signed int.
             # Shouldn't it be an unsigned int?
-            tag_length = self.readSI32();
+            tag_length = self.readSI32()
         return SWFRecordHeader(tag_type_and_length >> 6, tag_length, self.tell() - pos)
 
     def skip_bytes(self, length):
@@ -496,11 +497,11 @@ class SWFStream(object):
 
 def int32(x):
     """ Return a signed or unsigned int """
-    if x>0xFFFFFFFF:
+    if x > 0xFFFFFFFF:
         raise OverflowError
-    if x>0x7FFFFFFF:
-        x=int(0x100000000-x)
-        if x<2147483648:
+    if x > 0x7FFFFFFF:
+        x = int(0x100000000 - x)
+        if x < 2147483648:
             return -x
         else:
             return -2147483648

@@ -213,6 +213,10 @@ class DisplayListTag(Tag):
 
 class SWFTimelineContainer(DefinitionTag):
     def __init__(self):
+        self.quick_mode_accept_tags_type = [
+            TagDoABC.TYPE,
+            TagSymbolClass.TYPE,
+        ]
         self.tags = []
         super(SWFTimelineContainer, self).__init__()
 
@@ -223,7 +227,8 @@ class SWFTimelineContainer(DefinitionTag):
             s.update(dt.get_dependencies())
         return s
 
-    def parse_tags(self, data, version=1):
+    def parse_tags(self, data, version=1, is_quick_mode=False):
+        self.is_quick_mode = is_quick_mode
         pos = data.tell()
         self.file_length = self._get_file_length(data, pos)
         tag = None
@@ -244,16 +249,21 @@ class SWFTimelineContainer(DefinitionTag):
         if eof:
             # print "WARNING: end of file encountered, no end tag."
             return TagEnd()
-        raw_tag = data.readraw_tag()
+        raw_tag = SWFRawTag(data)
         tag_type = raw_tag.header.type
         tag = TagFactory.create(tag_type)
         if tag is not None:
             # print tag.name
             data.seek(raw_tag.pos_content)
             data.reset_bits_pending()
+            tag.header = raw_tag.header
             tag.file_offset = pos
-            tag.tag_length = raw_tag.header.tag_length
-            tag.parse(data, raw_tag.header.content_length, tag.version)
+            if not self.is_quick_mode:
+                tag.parse(data, raw_tag.header.content_length, tag.version)
+            else:
+                # in quick mode, just parse some tags
+                if tag.type in self.quick_mode_accept_tags_type:
+                    tag.parse(data, raw_tag.header.content_length, tag.version)
             # except:
             #    print "=> tag_error", tag.name
             data.seek(pos + raw_tag.header.tag_length)

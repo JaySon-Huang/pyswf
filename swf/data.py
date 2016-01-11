@@ -1,13 +1,26 @@
 from consts import *
 from utils import *
 
+
 class _dumb_repr(object):
     def __repr__(self):
         return '<%s %r>' % (self.__class__.__name__, self.__dict__)
 
+
+class SWFRecordHeader(_dumb_repr):
+    def __init__(self, type, content_length, header_length):
+        self.type = type
+        self.content_length = content_length
+        self.header_length = header_length
+
+    @property
+    def tag_length(self):
+        return self.header_length + self.content_length
+
+
 class SWFRawTag(_dumb_repr):
     def __init__(self, s=None):
-        if not s is None:
+        if s is not None:
             self.parse(s)
 
     def parse(self, s):
@@ -970,16 +983,6 @@ class SWFMorphLineStyle2(SWFMorphLineStyle):
         else:
             self.startColor = data.readRGBA()
             self.endColor = data.readRGBA()
-
-class SWFRecordHeader(_dumb_repr):
-    def __init__(self, type, content_length, header_length):
-        self.type = type
-        self.content_length = content_length
-        self.header_length = header_length
-
-    @property
-    def tag_length(self):
-        return self.header_length + self.content_length
 
 class SWFRectangle(_dumb_repr):
     def __init__(self):

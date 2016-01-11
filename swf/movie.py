@@ -81,6 +81,7 @@ class SWFHeader(object):
             "       FrameRate: %d\n" % self.frame_rate + \
             "       FrameCount: %d\n" % self.frame_count
 
+
 class SWF(SWFTimelineContainer):
     """
     SWF class
@@ -93,12 +94,12 @@ class SWF(SWFTimelineContainer):
     
     @param file: a file object with read(), seek(), tell() methods.
     """
-    def __init__(self, file=None):
+    def __init__(self, file=None, is_quick_mode=False):
         super(SWF, self).__init__()
         self._data = None if file is None else SWFStream(file)
         self._header = None
         if self._data is not None:
-            self.parse(self._data)
+            self.parse(self._data, is_quick_mode)
     
     @property
     def data(self):
@@ -134,8 +135,8 @@ class SWF(SWFTimelineContainer):
     def parse_file(self, filename):
         """ Parses the SWF from a filename """
         self.parse(open(filename, 'rb'))
-        
-    def parse(self, data):
+
+    def parse(self, data, is_quick_mode=False):
         """ 
         Parses the SWF.
         
@@ -152,7 +153,7 @@ class SWF(SWFTimelineContainer):
                 temp.write(zip.decompress(data))
             else:
                 import pylzma
-                data.readUI32() #consume compressed length
+                data.readUI32()  # consume compressed length
                 data = data.f.read()
                 temp.write(pylzma.decompress(data))
             temp.seek(0)
@@ -160,12 +161,11 @@ class SWF(SWFTimelineContainer):
             self._header._frame_size = data.readRECT()
             self._header._frame_rate = data.readFIXED8()
             self._header._frame_count = data.readUI16()
-        self.parse_tags(data)
-        
+        self.parse_tags(data, is_quick_mode=is_quick_mode)
+
     def __str__(self):
         s = "[SWF]\n"
         s += self._header.__str__()
         for tag in self.tags:
             s += tag.__str__() + "\n"
         return s
-        
