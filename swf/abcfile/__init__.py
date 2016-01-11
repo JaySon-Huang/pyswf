@@ -55,6 +55,36 @@ class StMethodInfo(object):
         return '<StMethodInfo {self.name}>'.format(self=self)
 
 
+class StExceptionInfo(object):
+
+    def __init__(self, stream):
+        self.from_ = stream.readEncodedU32()
+        self.to = stream.readEncodedU32()
+        self.target = stream.readEncodedU32()
+        self.exc_type = stream.readEncodedU32()
+        self.var_name = stream.readEncodedU32()
+
+
+class StMethodBodyInfo(object):
+
+    def __init__(self, stream):
+        self.method = stream.readEncodedU32()
+        self.max_stack = stream.readEncodedU32()
+        self.local_count = stream.readEncodedU32()
+        self.init_scope_depth = stream.readEncodedU32()
+        self.max_scope_depth = stream.readEncodedU32()
+        code_length = stream.readEncodedU32()
+        self.code = stream.read(code_length)
+        exception_count = stream.readEncodedU32()
+        self.exceptions = []
+        for _ in range(exception_count):
+            self.exceptions.append(StExceptionInfo(stream))
+        trait_count = stream.readEncodedU32()
+        self.traits = []
+        for _ in range(trait_count):
+            self.traits.append(TraitFactory.create(stream))
+
+
 class StInstanceInfo(object):
 
     CONSTANT_ClassSealed      = 0x01
@@ -222,21 +252,5 @@ class ABCFile(object):
         bodies = []
         method_body_count = stream.readEncodedU32()
         for _ in range(method_body_count):
-            method = stream.readEncodedU32()
-            max_stack = stream.readEncodedU32()
-            local_count = stream.readEncodedU32()
-            init_scope_depth = stream.readEncodedU32()
-            max_scope_depth = stream.readEncodedU32()
-            code_length = stream.readEncodedU32()
-            code = stream.read(code_length)
-            exception_count = stream.readEncodedU32()
-            for __ in range(exception_count):
-                from_ = stream.readEncodedU32()
-                to = stream.readEncodedU32()
-                target = stream.readEncodedU32()
-                exc_type = stream.readEncodedU32()
-                var_name = stream.readEncodedU32()
-            trait_count = stream.readEncodedU32()
-            for __ in range(trait_count):
-                trait = TraitFactory.create(stream)
+            bodies.append(StMethodBodyInfo(stream))
         return bodies
