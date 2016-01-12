@@ -180,6 +180,9 @@ multinames ({}):
             return {'name': '*', }
         return self.multinames[index].solve_name(self)
 
+    def get_multiname_string(self, index=None):
+        return str(self.get_solved_multiname(index))
+
     def parse(self, stream):
         self.offset['numbers'] = stream.tell()
         self._parse_numbers(stream)
