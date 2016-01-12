@@ -139,6 +139,17 @@ class SWFStream(object):
         self.reset_bits_pending()
         return struct.unpack('H', self.f.read(2))[0]
 
+    def readS24(self):
+        """ Read a two-byte signed int """
+        val = 0
+        for i in range(3):
+            ch = self.readUI8()
+            val |= (ch << (8 * i))
+        # FIXME how to handle negative s24?
+        if val & 0x800:
+            raise NotImplementedError('unhandled negative s24')
+        return val
+
     def readSI32(self):
         """ Read a signed int """
         self.reset_bits_pending()
