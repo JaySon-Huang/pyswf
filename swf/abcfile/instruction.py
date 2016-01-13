@@ -507,7 +507,8 @@ class Instruction(object):
                 default_offset = stream.readS24()
                 case_count = stream.readEncodedU32()
                 case_offsets = []
-                for _ in range(case_count):
+                # there are case_count+1 case offsets
+                for _ in range(case_count + 1):
                     case_offsets.append(stream.readS24())
                 instruction = InstructionLookupswitch(default_offset, case_offsets)
 
