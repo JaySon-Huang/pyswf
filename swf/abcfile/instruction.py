@@ -435,10 +435,11 @@ class Instruction(object):
             elif ch == 0x1f:
                 instruction = InstructionHasnext()
             elif ch == 0x32:
-                object_reg = None
-                index_reg = None
+                # is these reg index are EncodedU32?
+                object_reg = stream.readEncodedU32()
+                index_reg = stream.readEncodedU32()
                 instruction = InstructionHasnext2(object_reg, index_reg)
-                raise NotImplementedError('type of object_reg, index_reg remain unknown.')
+                # raise NotImplementedError('type of object_reg, index_reg remain unknown.')
             elif ch == 0x1e:
                 instruction = InstructionNextname()
             elif ch == 0x23:
