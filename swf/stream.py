@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding=utf-8
 import struct
 from data import *
 from actions import *
@@ -147,7 +149,8 @@ class SWFStream(object):
             val |= (ch << (8 * i))
         # FIXME how to handle negative s24?
         if val & 0x800:
-            raise NotImplementedError('unhandled negative s24')
+            # 获取补码的值(取反再加1)
+            val = - (((~(val & 0xffffff)) & 0xffffff) + 1)
         return val
 
     def readSI32(self):

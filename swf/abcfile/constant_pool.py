@@ -3,6 +3,7 @@
 
 import cStringIO as StringIO
 from pprint import pformat
+from swf.stream import int32
 
 
 # noinspection PyUnresolvedReferences
@@ -94,8 +95,8 @@ class StMultiname(object):
             }
         elif self.kind == self.TYPENAME:
             return {
-                'qname': const_pool.get_solved_multiname(self.qname_index),
-                'params': [const_pool.get_solved_multiname(i) for i in self.params]
+                'qname': const_pool.get_multiname(self.qname_index),
+                'params': [const_pool.get_multiname(i) for i in self.params]
             }
 
 
@@ -170,10 +171,10 @@ multinames ({}):
             self._ns_sets[index]
         ))
 
-    def get_solved_multiname(self, index=None):
+    def get_multiname(self, index=None):
         if index is None:
             return [
-                self.get_solved_multiname(i)
+                self.get_multiname(i)
                 for i in range(len(self.multinames))
             ]
         if index == 0:
@@ -181,7 +182,7 @@ multinames ({}):
         return self.multinames[index].solve_name(self)
 
     def get_multiname_string(self, index=None):
-        return str(self.get_solved_multiname(index))
+        return str(self.get_multiname(index))
 
     def parse(self, stream):
         self.offset['numbers'] = stream.tell()
@@ -219,7 +220,7 @@ multinames ({}):
     def _parse_numbers(self, stream):
         int_count = stream.readEncodedU32()
         for _ in range(int_count-1):
-            self.integers.append(stream.readEncodedU32())
+            self.integers.append(int32(stream.readEncodedU32()))
 
         uint_count = stream.readEncodedU32()
         for _ in range(uint_count-1):

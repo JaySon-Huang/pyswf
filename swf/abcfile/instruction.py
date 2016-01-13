@@ -165,9 +165,15 @@ class Instruction(object):
 
     def __init__(self):
         self.code = ''
+        self.code_offset_beg = 0
+        self.code_offset_end = 0
 
     def __repr__(self):
         return '<Instruction {0}>'.format(self.name)
+
+    @classmethod
+    def parse_code(cls, code_bytes):
+        return list(cls.iter_instructions(code_bytes))
 
     @staticmethod
     def iter_instructions(code_bytes):
@@ -591,6 +597,8 @@ class Instruction(object):
                 raise Exception("unhandled code byte 0x{0:02x}".format(ch))
             code_end = stream.tell()
             instruction.code = stream.f.getvalue()[code_beg:code_end]
+            instruction.code_offset_beg = code_beg
+            instruction.code_offset_end = code_end
             yield instruction
 
 
@@ -2319,7 +2327,7 @@ class InstructionJump(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2340,7 +2348,7 @@ class InstructionIfnlt(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2361,7 +2369,7 @@ class InstructionIfnle(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2382,7 +2390,7 @@ class InstructionIfngt(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2403,7 +2411,7 @@ class InstructionIfnge(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2424,7 +2432,7 @@ class InstructionIftrue(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2445,7 +2453,7 @@ class InstructionIffalse(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2466,7 +2474,7 @@ class InstructionIfeq(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2487,7 +2495,7 @@ class InstructionIfne(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2508,7 +2516,7 @@ class InstructionIflt(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2529,7 +2537,7 @@ class InstructionIfle(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2550,7 +2558,7 @@ class InstructionIfgt(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2571,7 +2579,7 @@ class InstructionIfge(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2592,7 +2600,7 @@ class InstructionIfstricteq(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2613,7 +2621,7 @@ class InstructionIfstrictne(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.offset)
+            'ofs{0:04x}'.format(self.code_offset_end + self.offset),
         ])
 
 
@@ -2764,8 +2772,11 @@ class InstructionLookupswitch(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            str(self.default_offset),
-            str(self.case_offsets),
+            'ofs{0:04x}'.format(self.code_offset_beg + self.default_offset),
+            str(list(map(
+                lambda ofs: 'ofs{0:04x}'.format(self.code_offset_beg + ofs),
+                self.case_offsets
+            ))),
         ])
 
 
@@ -3068,7 +3079,7 @@ class InstructionPushstring(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            constant_pool.get_string(self.index),
+            repr(constant_pool.get_string(self.index)),
         ])
 
 
@@ -3088,7 +3099,7 @@ class InstructionPushint(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            constant_pool.integers[self.index],
+            str(constant_pool.integers[self.index]),
         ])
 
 
@@ -3108,7 +3119,7 @@ class InstructionPushuint(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            constant_pool.uintegers[self.index],
+            str(constant_pool.uintegers[self.index]),
         ])
 
 
@@ -3128,7 +3139,7 @@ class InstructionPushdouble(Instruction):
     def resolve(self, constant_pool):
         return ' '.join([
             self.name,
-            constant_pool.doubles[self.index],
+            str(constant_pool.doubles[self.index]),
         ])
 
 
