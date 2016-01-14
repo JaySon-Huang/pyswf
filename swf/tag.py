@@ -1929,9 +1929,6 @@ class TagDoABC(Tag):
         self.lazyInitializeFlag = ((flags & 0x01) != 0)
         self.abcName = data.readString()
         self.bytes = data.f.read(length - (data.tell() - pos))
-        s = SWFStream(StringIO.StringIO(self.bytes))
-        self.abcFile = ABCFile()
-        self.abcFile.parse(s)
 
 
 class TagDefineShape4(TagDefineShape3):

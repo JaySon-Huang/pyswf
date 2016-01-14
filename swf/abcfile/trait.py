@@ -39,6 +39,7 @@ metadatas: {self.metadatas}
     self=self
 )
 
+
 class StTraitClass(StTraitBase):
 
     def __init__(self, name, kind):
@@ -133,7 +134,7 @@ class TraitFactory(object):
         name = stream.readEncodedU32()
         kind = stream.readUI8()
         trait_type = kind & 0x0f
-        if   trait_type in (cls.Trait_Slot, cls.Trait_Const):
+        if trait_type in (cls.Trait_Slot, cls.Trait_Const):
             trait = StTraitSlot(name, kind)
             trait.slot_id = stream.readEncodedU32()
             trait.type_name = stream.readEncodedU32()

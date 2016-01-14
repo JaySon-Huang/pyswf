@@ -180,7 +180,7 @@ class ABCFile(object):
         # parse instance_info && class_info
         self.offset['instances/classes'] = stream.tell()
         class_count = stream.readEncodedU32()
-        self.instances = self._parse_instances(stream, class_count)
+        self.instances = self.parse_instances(stream, class_count)
         self.classes = self.parse_classes(stream, class_count)
         self.offset['scripts'] = stream.tell()
         self.scripts = self.parse_scripts(stream)
@@ -217,7 +217,7 @@ class ABCFile(object):
         return metadatas
 
     @staticmethod
-    def _parse_instances(stream, class_count):
+    def parse_instances(stream, class_count):
         instances = []
         for _ in range(class_count):
             instances.append(StInstanceInfo(stream))
