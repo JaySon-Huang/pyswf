@@ -205,19 +205,19 @@ multinames ({}):
         if multiname.kind in (StMultiname.QName, StMultiname.QNameA):
             ns = self.get_namespace_string(multiname.ns)
             name = self._strings[multiname.name]
-            return 'QName({0}, "{1}")'.format(ns, name)
+            return u'QName({0}, "{1}")'.format(ns, name)
         elif multiname.kind in (StMultiname.RTQName, StMultiname.RTQNameA):
             name = self._strings[multiname.name]
-            return 'RTQName("{0}")'.format(name)
+            return u'RTQName("{0}")'.format(name)
         elif multiname.kind in (StMultiname.RTQNameL, StMultiname.RTQNameLA):
-            return 'RTQNameL/RTQNameLA()'
+            return u'RTQNameL/RTQNameLA()'
         elif multiname.kind in (StMultiname.Multiname, StMultiname.MultinameA):
             name = self._strings[multiname.name]
-            return 'Multiname/MultinameA({0}, "{1}")'.format(multiname.ns_set, name)
+            return u'Multiname/MultinameA({0}, "{1}")'.format(multiname.ns_set, name)
         elif multiname.kind in (StMultiname.MultinameL, StMultiname.MultinameLA):
-            return 'MultinameL/MultinameLA({0})'.format(multiname.ns_set)
+            return u'MultinameL/MultinameLA({0})'.format(multiname.ns_set)
         elif multiname.kind == StMultiname.TYPENAME:
-            return 'TYPENAME({0}, {1})'.format(
+            return u'TYPENAME({0}, {1})'.format(
                 self.get_multiname_string(multiname.qname_index),
                 multiname.params
             )
