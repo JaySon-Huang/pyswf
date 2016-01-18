@@ -5,6 +5,27 @@ from constant_pool import ConstantPool, StMultiname
 from trait import TraitFactory
 
 
+CONSTANT_KIND_NAME = {
+    0x03: 'Integer',
+    0x04: 'uInteger',
+    0x06: 'Double',
+    0x01: 'String',
+
+    0x0B: 'True',
+    0x0A: 'False',
+    0x0C: 'Null',
+    0x00: 'Undefined',
+
+    0x08: 'Namespace',
+    0x16: 'PackageNamespace',
+    0x17: 'PackageInternalNamespace',
+    0x18: 'ProtectedNamespace',
+    0x19: 'ExplicitNamespace',
+    0x1A: 'StaticProtectedNamespace',
+    0x05: 'PrivateNamespace',
+}
+
+
 class StMethodInfo(object):
 
     NEED_ARGUMENTS  = 0x01
