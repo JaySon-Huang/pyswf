@@ -2012,8 +2012,7 @@ class TagDefineSceneAndFrameLabelData(Tag):
 class TagDefineBinaryData(DefinitionTag):
     """
     The DefineBinaryData tag permits arbitrary binary data to be embedded in
-    a SWF file. DefineBinaryData is a definition tag,
-    like DefineShape and DefineSprite.
+    a SWF file. DefineBinaryData is a definition tag, like DefineShape and DefineSprite.
     It associates a blob of binary data with a standard SWF 16-bit character ID.
     The character ID is entered into the SWF file's character dictionary.
     DefineBinaryData is intended to be used in conjunction with the SymbolClass tag.
@@ -2036,6 +2035,7 @@ class TagDefineBinaryData(DefinitionTag):
         return TagDefineBinaryData.TYPE
 
     def parse(self, data, length, version=1):
+        assert length >= 6
         self.characterId = data.readUI16()
         self.reserved = data.readUI32()
         self.data = data.read(length - 6)
@@ -2273,35 +2273,6 @@ class TagSoundStreamBlock(Tag):
             self.sampleCount = stream.readUI16()
             self.seekSize = stream.readSI16()
             self.mpegFrames = stream.read()
-
-
-class TagDefineBinaryData(DefinitionTag):
-    """
-    The DefineBinaryData tag permits arbitrary
-    binary data to be embedded in a SWF file.
-    DefineBinaryData is a definition tag, like DefineShape and DefineSprite.
-    It associates a blob of binary data with
-    a standard SWF 16-bit character ID.
-    The character ID is entered into the SWF file's character dictionary.
-    """
-    TYPE = 87
-
-    def __init__(self):
-        super(TagDefineBinaryData, self).__init__()
-
-    @property
-    def name(self):
-        return "TagDefineBinaryData"
-
-    @property
-    def type(self):
-        return TagDefineBinaryData.TYPE
-
-    def parse(self, data, length, version=1):
-        assert length >= 6
-        self.characterId = data.readUI16()
-        self.reserved = data.readUI32()
-        self.data = data.read(length - 4 - 2)
 
 
 class TagProductInfo(Tag):
