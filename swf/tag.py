@@ -216,6 +216,7 @@ class SWFTimelineContainer(DefinitionTag):
         self.quick_mode_accept_tags_type = [
             TagDoABC.TYPE,
             TagSymbolClass.TYPE,
+            TagDefineBinaryData.TYPE,
         ]
         self.tags = []
         super(SWFTimelineContainer, self).__init__()
@@ -2004,8 +2005,8 @@ class TagDefineSceneAndFrameLabelData(Tag):
 
         frameLabelCount = data.readEncodedU32()
         for i in range(0, frameLabelCount):
-            frameNumber = data.readEncodedU32();
-            frameLabel = data.readString();
+            frameNumber = data.readEncodedU32()
+            frameLabel = data.readString()
             self.frameLabels.append(SWFFrameLabel(frameNumber, frameLabel))
 
 
