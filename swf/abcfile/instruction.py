@@ -595,6 +595,11 @@ class Instruction(object):
             elif ch == 0x48:
                 instruction = InstructionReturnvalue()
 
+            # not appear in avm2overview but appear in actual code
+            elif ch == 0x53:
+                num = stream.readEncodedU32()  # guess that it is an Encoded U32 number
+                instruction = InstructionApplytype(num)
+
             else:
                 raise Exception("unhandled code byte 0x{0:02x}".format(ch))
             code_end = stream.tell()
@@ -3367,3 +3372,21 @@ class InstructionReturnvalue(Instruction):
     # noinspection PyUnusedLocal
     def resolve(self, constant_pool):
         return self.name
+
+
+class InstructionApplytype(Instruction):
+
+    FORM = 0x53
+
+    @property
+    def name(self):
+        return 'applytype'
+
+    def __init__(self, num):
+        super(InstructionApplytype, self).__init__()
+        self.code = '\x53'
+        self.num = num
+
+    # noinspection PyUnusedLocal
+    def resolve(self, constant_pool):
+        return ' '.join([self.name, str(self.num)])
