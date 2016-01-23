@@ -200,29 +200,41 @@ multinames ({}):
         else:
             return 'Namespace("{0}")'.format(self.get_namespace(index))
 
+    def get_namespace_set_string(self, index):
+        return 'NS_SET:<{0}>'.format(', '.join(
+            map(self.get_namespace_string, self._ns_sets[index])
+        ))
+
     def get_multiname_string(self, index):
         multiname = self._multinames[index]
-        if multiname.kind in (StMultiname.QName, StMultiname.QNameA):
-            ns = self.get_namespace_string(multiname.ns)
-            name = self._strings[multiname.name]
-            return u'QName({0}, "{1}")'.format(ns, name)
-        elif multiname.kind in (StMultiname.RTQName, StMultiname.RTQNameA):
-            name = self._strings[multiname.name]
-            return u'RTQName("{0}")'.format(name)
-        elif multiname.kind in (StMultiname.RTQNameL, StMultiname.RTQNameLA):
-            return u'RTQNameL/RTQNameLA()'
-        elif multiname.kind in (StMultiname.Multiname, StMultiname.MultinameA):
-            name = self._strings[multiname.name]
-            return u'Multiname/MultinameA({0}, "{1}")'.format(multiname.ns_set, name)
-        elif multiname.kind in (StMultiname.MultinameL, StMultiname.MultinameLA):
-            return u'MultinameL/MultinameLA({0})'.format(multiname.ns_set)
-        elif multiname.kind == StMultiname.TYPENAME:
-            return u'TYPENAME({0}, {1})'.format(
-                self.get_multiname_string(multiname.qname_index),
-                multiname.params
-            )
-        info = self.get_multiname(index)
-        return str(info)
+        try:
+            if multiname.kind in (StMultiname.QName, StMultiname.QNameA):
+                ns = self.get_namespace_string(multiname.ns)
+                name = self._strings[multiname.name]
+                return u'QName({0}, "{1}")'.format(ns, name)
+            elif multiname.kind in (StMultiname.RTQName, StMultiname.RTQNameA):
+                name = self._strings[multiname.name]
+                return u'RTQName("{0}")'.format(name)
+            elif multiname.kind in (StMultiname.RTQNameL, StMultiname.RTQNameLA):
+                return u'RTQNameL()'
+            elif multiname.kind in (StMultiname.Multiname, StMultiname.MultinameA):
+                name = self._strings[multiname.name]
+                return u'Multiname({0}, "{1}")'.format(
+                    self.get_namespace_set_string(multiname.ns_set),
+                    name
+                )
+            elif multiname.kind in (StMultiname.MultinameL, StMultiname.MultinameLA):
+                return u'MultinameL({0})'.format(
+                    self.get_namespace_set_string(multiname.ns_set)
+                )
+            elif multiname.kind == StMultiname.TYPENAME:
+                return u'TYPENAME({0}, {1})'.format(
+                    self.get_multiname_string(multiname.qname_index),
+                    multiname.params
+                )
+        except UnicodeDecodeError:
+            info = self.get_multiname(index)
+            return 'Parse Multiname error: ' + str(info)
 
     def parse(self, stream):
         self.offset['numbers'] = stream.tell()

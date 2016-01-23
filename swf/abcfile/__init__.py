@@ -183,8 +183,8 @@ class ABCFile(object):
 
     @property
     def version(self):
-        return '0x{version.major:02x}.{version.minor:02x}'.format(
-            version=self._version
+        return '0x{0:02x}.{1:02x}'.format(
+            self._version['major'], self._version['minor']
         )
 
     def parse(self, stream):
