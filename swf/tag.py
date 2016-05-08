@@ -1000,7 +1000,7 @@ class TagDefineBitsLossless(DefinitionTag):
             self.image_buffer = s.getvalue()
             s.close()
 
-            im = Image.fromstring(
+            im = Image.frombytes(
                     "RGBA",
                     (self.padded_width, self.bitmap_height),
                     self.image_buffer
